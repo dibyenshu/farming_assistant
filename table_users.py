@@ -1,0 +1,10 @@
+#constant names used in tables
+TABLE_NAME = 'users'
+USERNAME = 'username'
+NAME = 'name'
+DOB = 'dob'
+LOCATION = 'location'
+PHONE_NO = 'phoneNo'
+EMAIL = 'email'
+PASSWORD = 'password'
+TYPE = 'type'

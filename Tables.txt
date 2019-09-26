@@ -1,0 +1,24 @@
+users{
+username varchar,
+name varchar,
+dob date,
+location varchar,
+phoneNo int,
+email varchar,
+password varchar,
+type int
+}
+
+//to do
+crops{
+name varchar,
+soilType varchar,
+soilMoisture float,
+soilPh float,
+soilTemp float,
+precipitation float,
+temp float,
+humidity float,
+solarRadiation float,
+soilAir float
+}
