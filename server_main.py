@@ -1,6 +1,7 @@
 from flask import request, Flask, jsonify, make_response
 from flask_mysqldb import MySQL
 import table_users as users
+import random
 
 app = Flask(__name__)
 
@@ -13,6 +14,10 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 #initialize mysql
 mysql = MySQL(app)
+
+#inititalize session tracking variable session:username
+SESSION = {}
+SESSION_ID = -1
 
 @app.route('/')
 def home():
@@ -55,19 +60,67 @@ def resgistration():
     cur = mysql.connection.cursor()
 
     query = 'INSERT INTO ' + users.TABLE_NAME + ' VALUES(\"'+ username + '\",\"' + name + '\",\"' + dob + '\",\"' + location + '\",\"' + phoneNo + '\",\"' + email + '\",\"' + password + '\",' + typ + ');' 
-    print(query)
-    #execute query
-    cur.execute(query) 
+    # print(query)
+    try:
+        #execute query
+        cur.execute(query) 
     
-    #commit to the DB
-    mysql.connection.commit()
+        #commit to the DB
+        mysql.connection.commit()
 
-    #close the connection
+        #close the connection
+        cur.close()
+
+        print("successfully inserted")
+        return ('201')
+        
+    except mysql.connection.Error as error:
+        print("Error registering" + error)
+        return ('500')
+
+@app.route('/login',methods=['POST'])
+def login():
+    global SESSION,SESSION_ID
+    data = request.get_json()
+    username = data[users.USERNAME]
+    password = data[users.PASSWORD]
+
+    #define cursor
+    cur = mysql.connection.cursor()
+
+    query = "SELECT " + users.PASSWORD + " from " + users.TABLE_NAME + " WHERE " + users.USERNAME + " = " + '\'' + username + '\';'
+    # print(query)
+
+    #execute query
+    result = cur.execute(query) 
+
+    ret_val = -1
+
+    while result > 0:
+        row = cur.fetchone()
+        if row[users.PASSWORD] == password:
+            found = False
+            for ses,us in SESSION.items():
+                if us == username:
+                    ret_val = ses
+                    found = True
+                    break
+
+            if found == False:
+                SESSION[SESSION_ID] = username
+                ret_val = SESSION_ID
+                SESSION_ID = SESSION_ID + 1
+        
+        result = result - 1
+        
+    #close connection
     cur.close()
 
-    return ('User registered')
+    # print(str(ret_val))
 
-#@app.route('/login')
+    return (str(ret_val))
+
 
 if __name__ == '__main__':
-    app.run(host = '192.168.31.176',debug=True)
+    SESSION_ID = random.randint(1,1000)
+    app.run(host = '192.168.1.25',debug=True)
