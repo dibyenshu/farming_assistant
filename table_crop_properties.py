@@ -1,0 +1,11 @@
+#constant names used in tables
+TABLE_NAME = 'crop_properties'
+CROPNAME = 'cropname'
+PRECIPITATION = 'precipitation'
+TEMPERATURE = 'temp'
+HUMIDITY = 'humidity'
+RADIATION = 'radiation'
+MOISTURE = 'moisture'
+SOIL_TEMPERATURE = 'soil_temp'
+PH = 'ph'
+WATER_PH = 'water_ph'
