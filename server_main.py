@@ -1,7 +1,13 @@
 from flask import request, Flask, jsonify, make_response
 from flask_mysqldb import MySQL
+from inspect import getmembers
 import table_users as users
+import table_user_crops as user_crops
+import table_crop_properties as crop_properties
 import random
+
+#to store the list of crops
+CROPS = []
 
 app = Flask(__name__)
 
@@ -107,7 +113,7 @@ def login():
                     break
 
             if found == False:
-                SESSION[SESSION_ID] = username
+                SESSION[str(SESSION_ID)] = username
                 ret_val = SESSION_ID
                 SESSION_ID = SESSION_ID + 1
         
@@ -120,7 +126,40 @@ def login():
 
     return (str(ret_val))
 
+@app.route('/getCrops/<farmerSessionId>',methods=['GET'])
+def getCrops(farmerSessionId):
+    global SESSION,SESSION_ID,CROPS
+    farmerUsername = SESSION[farmerSessionId]
+    print(farmerUsername)
+    #get cursor
+    cur = mysql.connection.cursor()
+
+    query = "select * from " + user_crops.TABLE_NAME + " where " + user_crops.USERNAME + " = " + "\'" + farmerUsername + "\'" + ";"
+    print(query)
+
+    cur.execute(query)
+
+    row = cur.fetchone()
+
+    response = ""
+
+    for crop in CROPS:
+        print(crop)
+        print(row[crop])
+        if(row[crop]== '1'):
+            response += "," + crop 
+
+    cur.close()
+
+    #returns the list of crops registered by the user
+    return (str(response)[1:])
+    
+
 
 if __name__ == '__main__':
     SESSION_ID = random.randint(1,1000)
+    for i in range(0,len(getmembers(user_crops))-8):
+        if(getmembers(user_crops)[i][0]!='TABLE_NAME' and getmembers(user_crops)[i][0]!='USERNAME'):
+            print(getmembers(user_crops)[i][1])
+            CROPS.insert(0,getmembers(user_crops)[i][1])
     app.run(host = '192.168.1.25',debug=True)
