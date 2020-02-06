@@ -122,8 +122,7 @@ def login():
     #close connection
     cur.close()
 
-    # print(str(ret_val))
-
+    print(str(ret_val))
     return (str(ret_val))
 
 @app.route('/getCrops/<farmerSessionId>',methods=['GET'])
@@ -144,8 +143,6 @@ def getCrops(farmerSessionId):
     response = ""
 
     for crop in CROPS:
-        print(crop)
-        print(row[crop])
         if(row[crop]== '1'):
             response += "," + crop 
 
@@ -153,7 +150,52 @@ def getCrops(farmerSessionId):
 
     #returns the list of crops registered by the user
     return (str(response)[1:])
+
+
+@app.route('/addCrop/<farmerSessionId>',methods=['POST'])
+def addCrop(farmerSessionId):
+    global SESSION,SESSION_ID,CROPS
+    farmerUsername = SESSION[farmerSessionId]
+    data = request.get_json()
+
+    cur = mysql.connection.cursor()
+
+    query = "select * from " + user_crops.TABLE_NAME + " where " + user_crops.USERNAME + " = " + "\'" + farmerUsername + "\'" + ";" 
+    print(query)
+
+    cur.execute(query)
+    row = cur.fetchone()
+    print(row)
+
+    print("debug here")
+
+    cropLs = {}
+    for crop in CROPS:
+        boolVal = (row[crop]=="1") | (data[crop]=="1")
+        if boolVal:
+            cropLs[crop] = "1"
+        else:
+            cropLs[crop] = "0"
+
+    query = "update " + user_crops.TABLE_NAME + " set " + user_crops.RICE + " = " + "\'" + cropLs[user_crops.RICE] + "\'" + "," +user_crops.WHEAT + " = " + "\'" + cropLs[user_crops.WHEAT] + "\'" + " where " + user_crops.USERNAME + "=" + "\'" + farmerUsername + "\'" + ";" 
+    print(query)
+
+    try:
+        #execute query
+        cur.execute(query) 
     
+        #commit to the DB
+        mysql.connection.commit()
+
+        #close the connection
+        cur.close()
+
+        print("successfully updated crop list for the user")
+        return ('201')
+        
+    except mysql.connection.Error as error:
+        print("Error updating" + error)
+        return ('500')
 
 
 if __name__ == '__main__':
@@ -162,4 +204,4 @@ if __name__ == '__main__':
         if(getmembers(user_crops)[i][0]!='TABLE_NAME' and getmembers(user_crops)[i][0]!='USERNAME'):
             print(getmembers(user_crops)[i][1])
             CROPS.insert(0,getmembers(user_crops)[i][1])
-    app.run(host = '192.168.1.25',debug=True)
+    app.run(host = '192.168.1.8',debug=True)
