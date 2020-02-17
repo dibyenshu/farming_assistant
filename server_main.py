@@ -228,7 +228,7 @@ def getSuggestedCrop():
     crop_points = MV.CalculatePoints(crop_points,crop_prop,currentCondition)
     print(crop_points)
 
-    return "got the crop list in reccomended order"
+    return str(crop_points)
 
 if __name__ == '__main__':
     SESSION_ID = random.randint(1,1000)
