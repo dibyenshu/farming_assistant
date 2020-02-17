@@ -201,6 +201,7 @@ def addCrop(farmerSessionId):
 @app.route('/getSuggestedCrops')
 def getSuggestedCrop():
 
+    #current condition needs to be changed here
     currentCondition = {
         crop_properties.TEMPERATURE:"23-45",#degree celcius
         crop_properties.HUMIDITY:"40-80",#percentage
@@ -227,6 +228,9 @@ def getSuggestedCrop():
 
     crop_points = MV.CalculatePoints(crop_points,crop_prop,currentCondition)
     print(crop_points)
+
+
+    sorted_crop_points = sorted(crop_points.items(),key=lambda parameter_list: parameter_list[1])
 
     return str(crop_points)
 
