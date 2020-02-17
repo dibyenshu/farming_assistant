@@ -5,6 +5,7 @@ import table_users as users
 import table_user_crops as user_crops
 import table_crop_properties as crop_properties
 import random
+import majority_voting as MV
 
 #to store the list of crops
 CROPS = []
@@ -197,6 +198,37 @@ def addCrop(farmerSessionId):
         print("Error updating" + error)
         return ('500')
 
+@app.route('/getSuggestedCrops')
+def getSuggestedCrop():
+
+    currentCondition = {
+        crop_properties.TEMPERATURE:"23-45",#degree celcius
+        crop_properties.HUMIDITY:"40-80",#percentage
+        crop_properties.RAINFALL:"120",
+        "locationDensity":"4"#-((0.3x)^2)
+    }
+
+    cur = mysql.connection.cursor()
+
+    query = "select * from " + crop_properties.TABLE_NAME + ";"
+
+    cur.execute(query)
+    rows = cur.fetchall()
+    crop_prop = {}
+    for row in rows:
+        crop_prop[row[crop_properties.CROPNAME]] = row
+
+    cur.close()
+
+    crop_points = {}
+
+    for x in CROPS:
+        crop_points[x] = 0
+
+    crop_points = MV.CalculatePoints(crop_points,crop_prop,currentCondition)
+    print(crop_points)
+
+    return "got the crop list in reccomended order"
 
 if __name__ == '__main__':
     SESSION_ID = random.randint(1,1000)
@@ -204,4 +236,4 @@ if __name__ == '__main__':
         if(getmembers(user_crops)[i][0]!='TABLE_NAME' and getmembers(user_crops)[i][0]!='USERNAME'):
             print(getmembers(user_crops)[i][1])
             CROPS.insert(0,getmembers(user_crops)[i][1])
-    app.run(host = '192.168.1.8',debug=True)
+    app.run(host = '192.168.1.7',debug=True)
