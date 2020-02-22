@@ -232,7 +232,7 @@ def getSuggestedCrop():
 
     sorted_crop_points = sorted(crop_points.items(),key=lambda parameter_list: parameter_list[1])
 
-    return str(crop_points)
+    return str(sorted_crop_points)
 
 if __name__ == '__main__':
     SESSION_ID = random.randint(1,1000)
