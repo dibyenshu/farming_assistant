@@ -71,6 +71,13 @@ def resgistration():
     try:
         #execute query
         cur.execute(query) 
+
+        #new query to initialize the name of the user in user_crops database;
+        query = 'INSERT INTO ' + user_crops.TABLE_NAME + ' VALUES(\"'+ username + '\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\");'
+        print(query)
+
+        #execute query2
+        cur.execute(query)
     
         #commit to the DB
         mysql.connection.commit()
@@ -178,7 +185,8 @@ def addCrop(farmerSessionId):
         else:
             cropLs[crop] = "0"
 
-    query = "update " + user_crops.TABLE_NAME + " set " + user_crops.RICE + " = " + "\'" + cropLs[user_crops.RICE] + "\'" + "," +user_crops.WHEAT + " = " + "\'" + cropLs[user_crops.WHEAT] + "\'" + " where " + user_crops.USERNAME + "=" + "\'" + farmerUsername + "\'" + ";" 
+    query = "update " + user_crops.TABLE_NAME + " set " + user_crops.RICE + " = " + "\'" + cropLs[user_crops.RICE] + "\'" + "," + user_crops.WHEAT + " = " + "\'" + cropLs[user_crops.WHEAT] + "\'" + "," + user_crops.MUNG_BEAN + " = " + "\'" + cropLs[user_crops.MUNG_BEAN] + "\'" + "," + user_crops.TEA + " = " + "\'" + cropLs[user_crops.TEA] + "\'" + "," + user_crops.MILLET + " = " + "\'" + cropLs[user_crops.MILLET] + "\'" + "," + user_crops.MAIZE + " = " + "\'" + cropLs[user_crops.MAIZE] + "\'"  +   " where " + user_crops.USERNAME + "=" + "\'" + farmerUsername + "\'" + ";" 
+    
     print(query)
 
     try:
@@ -240,4 +248,4 @@ if __name__ == '__main__':
         if(getmembers(user_crops)[i][0]!='TABLE_NAME' and getmembers(user_crops)[i][0]!='USERNAME'):
             print(getmembers(user_crops)[i][1])
             CROPS.insert(0,getmembers(user_crops)[i][1])
-    app.run(host = '192.168.1.7',debug=True)
+    app.run(host = '192.168.1.9',debug=True)
