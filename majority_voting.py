@@ -35,7 +35,7 @@ def LocationScore(crop):
     db.query(query)
     rows = db.store_result().fetch_row(maxrows=0,how=1)
     for row in rows:
-        if row[crop] == 1:
+        if row[crop] == '1':
             locationDensity = locationDensity + 1
 
     #calculate the score and return
