@@ -4,6 +4,7 @@ from inspect import getmembers
 import table_users as users
 import table_user_crops as user_crops
 import table_crop_properties as crop_properties
+import table_user_crop_details as user_crop_details
 import random
 import majority_voting as MV
 
@@ -66,17 +67,22 @@ def resgistration():
     #define cursor
     cur = mysql.connection.cursor()
 
-    query = 'INSERT INTO ' + users.TABLE_NAME + ' VALUES(\"'+ username + '\",\"' + name + '\",\"' + dob + '\",\"' + location + '\",\"' + phoneNo + '\",\"' + email + '\",\"' + password + '\",' + typ + ');' 
-    # print(query)
     try:
+        query = 'INSERT INTO ' + users.TABLE_NAME + ' VALUES(\"'+ username + '\",\"' + name + '\",\"' + dob + '\",\"' + location + '\",\"' + phoneNo + '\",\"' + email + '\",\"' + password + '\",' + typ + ');' 
+        # print(query)
         #execute query
         cur.execute(query) 
 
         #new query to initialize the name of the user in user_crops database;
         query = 'INSERT INTO ' + user_crops.TABLE_NAME + ' VALUES(\"'+ username + '\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\");'
-        print(query)
-
+        #print(query)
         #execute query2
+        cur.execute(query)
+
+        #new query to create table for the user to store its individual crop details
+        query = 'CREATE TABLE ' + username + '(' + user_crop_details.CROPNAME + ' varchar(255) primary key,' + user_crop_details.PRECIPITATION + ' varchar(255),' + user_crop_details.TEMP + ' varchar(255),' + user_crop_details.HUMIDITY + ' varchar(255),' + user_crop_details.MOISTURE + ' varchar(255),' + user_crop_details.SOIL_TEMP + ' varchar(255),' + user_crop_details.PH + ' varchar(255),' + user_crop_details.WATER_PH + ' varchar(255));'
+        print(query)
+        #execute query3
         cur.execute(query)
     
         #commit to the DB
@@ -165,6 +171,8 @@ def addCrop(farmerSessionId):
     global SESSION,SESSION_ID,CROPS
     farmerUsername = SESSION[farmerSessionId]
     data = request.get_json()
+    crop_details = data['details']
+    cropname = ""
 
     cur = mysql.connection.cursor()
 
@@ -175,23 +183,21 @@ def addCrop(farmerSessionId):
     row = cur.fetchone()
     print(row)
 
-    print("debug here")
-
-    cropLs = {}
     for crop in CROPS:
-        boolVal = (row[crop]=="1") | (data[crop]=="1")
-        if boolVal:
-            cropLs[crop] = "1"
-        else:
-            cropLs[crop] = "0"
-
-    query = "update " + user_crops.TABLE_NAME + " set " + user_crops.RICE + " = " + "\'" + cropLs[user_crops.RICE] + "\'" + "," + user_crops.WHEAT + " = " + "\'" + cropLs[user_crops.WHEAT] + "\'" + "," + user_crops.MUNG_BEAN + " = " + "\'" + cropLs[user_crops.MUNG_BEAN] + "\'" + "," + user_crops.TEA + " = " + "\'" + cropLs[user_crops.TEA] + "\'" + "," + user_crops.MILLET + " = " + "\'" + cropLs[user_crops.MILLET] + "\'" + "," + user_crops.MAIZE + " = " + "\'" + cropLs[user_crops.MAIZE] + "\'"  +   " where " + user_crops.USERNAME + "=" + "\'" + farmerUsername + "\'" + ";" 
-    
-    print(query)
+        if data[crop]=="1":
+            cropname = crop
+            break
 
     try:
+        query = "update " + user_crops.TABLE_NAME + " set " + cropname + "=\'1\'" + " where " + user_crops.USERNAME + "=" + "\'" + farmerUsername + "\'" + ";" 
+        print(query)
         #execute query
         cur.execute(query) 
+
+        #query 2 into insert that particular crop into the table
+        query = "INSERT INTO " + farmerUsername +" VALUES(" + "\'" + cropname + "\'"+ "," +"\'"+ crop_details[user_crop_details.PRECIPITATION] +"\'" + "," + "\'"+ crop_details[user_crop_details.TEMP] +"\'" + "," + "\'"+ crop_details[user_crop_details.HUMIDITY] +"\'" + "," + "\'"+ crop_details[user_crop_details.MOISTURE] +"\'" + "," + "\'"+ crop_details[user_crop_details.SOIL_TEMP] +"\'" + "," + "\'"+ crop_details[user_crop_details.PH] +"\'" + "," + "\'"+ crop_details[user_crop_details.WATER_PH] +"\'" + ");"
+        #execute this query
+        cur.execute(query)
     
         #commit to the DB
         mysql.connection.commit()
@@ -206,14 +212,16 @@ def addCrop(farmerSessionId):
         print("Error updating" + error)
         return ('500')
 
-@app.route('/getSuggestedCrops')
+@app.route('/getSuggestedCrops',methods=['POST'])
 def getSuggestedCrop():
+
+    data = request.get_json()
 
     #current condition needs to be changed here
     currentCondition = {
-        crop_properties.TEMPERATURE:"23-45",#degree celcius
-        crop_properties.HUMIDITY:"40-80",#percentage
-        crop_properties.RAINFALL:"120",
+        crop_properties.TEMPERATURE:data[crop_properties.TEMPERATURE],#degree celcius
+        crop_properties.HUMIDITY:data[crop_properties.HUMIDITY],#percentage
+        crop_properties.RAINFALL:data[crop_properties.RAINFALL],
         "locationDensity":"4"#-((0.3x)^2)
     }
 
