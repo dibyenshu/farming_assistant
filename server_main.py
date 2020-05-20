@@ -186,7 +186,8 @@ def getCropDetails(farmerSessionId,cropname):
     del farmerCropDetails[crop_properties.CROPNAME]
 
     response = jsonify([farmerCropDetails,optimalCropDetails])
-
+    print(farmerCropDetails)
+    print(optimalCropDetails)
     return response
 
 @app.route('/addCrop/<farmerSessionId>',methods=['POST'])
