@@ -1,6 +1,7 @@
 import table_users as users
 import table_user_crops as user_crops
 import table_crop_properties as crop_properties
+import decision_tree
 import MySQLdb
 
 def HumidityInRange(requiredRange,actualVal):
@@ -54,5 +55,10 @@ def CalculatePoints(crop_points,crop_prop,currentCondition):
         crop_points[crop] += rainfall
         locationDesnsityScore = LocationScore(crop)
         crop_points[crop] += locationDesnsityScore
+        
+        dtParameters = [currentCondition[crop_properties.TEMPERATURE],currentCondition[crop_properties.HUMIDITY],currentCondition[crop_properties.RAINFALL]]
+        dtCrop = decision_tree.predict(dtParameters)
+        print(dtCrop)
+        crop_points[dtCrop] += 1
 
     return crop_points
