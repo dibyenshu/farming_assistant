@@ -165,12 +165,36 @@ def getCrops(farmerSessionId):
     #returns the list of crops registered by the user
     return (str(response)[1:])
 
+@app.route('/getCropDetails/<farmerSessionId>/<cropname>',methods=['GET'])
+def getCropDetails(farmerSessionId,cropname):
+    global SESSION,SESSION_ID,CROPS
+    farmerUsername = SESSION[farmerSessionId]
+
+    cur = mysql.connection.cursor()
+
+    query = 'select * from ' + farmerUsername + ' where ' + user_crop_details.CROPNAME + ' = ' + "\'" + cropname + "\';"
+    cur.execute(query)
+    farmerCropDetails = cur.fetchone()
+
+    query = 'select * from ' + crop_properties.TABLE_NAME + ' where ' + crop_properties.CROPNAME + '=' + "\'" + cropname + "\';"
+    cur.execute(query)
+    optimalCropDetails = cur.fetchone()
+
+    del optimalCropDetails[crop_properties.RADIATION]
+    del optimalCropDetails[crop_properties.RAINFALL]
+    del optimalCropDetails[crop_properties.CROPNAME]
+    del farmerCropDetails[crop_properties.CROPNAME]
+
+    response = jsonify([farmerCropDetails,optimalCropDetails])
+
+    return response
 
 @app.route('/addCrop/<farmerSessionId>',methods=['POST'])
 def addCrop(farmerSessionId):
     global SESSION,SESSION_ID,CROPS
     farmerUsername = SESSION[farmerSessionId]
     data = request.get_json()
+    print(data)
     crop_details = data['details']
     cropname = ""
 
@@ -243,12 +267,17 @@ def getSuggestedCrop():
         crop_points[x] = 0
 
     crop_points = MV.CalculatePoints(crop_points,crop_prop,currentCondition)
-    print(crop_points)
 
 
     sorted_crop_points = sorted(crop_points.items(),key=lambda parameter_list: parameter_list[1])
+    print(sorted_crop_points)
 
-    return str(sorted_crop_points)
+    suggestion = []
+    
+    for x in reversed(sorted_crop_points):
+        suggestion.append(x[0])
+
+    return str(suggestion)
 
 if __name__ == '__main__':
     SESSION_ID = random.randint(1,1000)
